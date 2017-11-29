@@ -1,0 +1,694 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Reversi: The Game</title>
+<style>
+	#table_header td:nth-of-type(n+2){
+		background-color: burlywood;
+		font-size: 25px;
+		text-align: center;
+	}
+	#table_body tr td:nth-child(1){
+		background-color: burlywood;
+		font-size: 25px;
+		text-align: center;
+	}
+	#table_header td:nth-child(1){
+		background-color: #976729;
+		font-size: 25px;
+		text-align: center;
+	}
+	document{
+		font-family: roboto;
+	}
+	#game_table{
+		position: relative;
+		display: inline-block
+	}
+	#table tbody td:nth-of-type(even){
+		background-color: grey;
+	}
+	#table tbody td:nth-of-type(2n+3){
+		background-color: darkgray;
+	}
+	#fichablanca_small{
+		border-radius: 100%;
+		background-color: aliceblue;
+		height:25px;
+		width: 25px;
+		margin: 0px;
+		border: 1px thick red;
+		box-shadow: 1px 1px;
+		margin: 0px;
+		position: absolute;
+		left:10px;
+		top:12px;
+	}
+	#fichanegra_small{
+		border-radius: 100%;
+		background-color:#161314;
+		height:25px;
+		width: 25px;
+		margin: 0px;
+		border: 1px thick red;
+		box-shadow: 1px 1px #3A3A3A;
+		margin: 0px;
+		position: absolute;
+		left:10px;
+		top:12px;
+	}
+	#colores_personas{
+		width: 222px;
+		height: 103px;
+		position: absolute;
+		left: 510px;
+		top: 60px;
+	}
+	.fichablanca{
+		border-radius: 100%;
+		background-color: aliceblue;
+		height:35px;
+		width: 35px;
+		margin: auto;
+		border: 1px thick red;
+		box-shadow: 1px 1px;
+	}
+	.fichanegra{
+		border-radius: 100%;
+		background-color:#161314;
+		height:35px;
+		width: 35px;
+		margin: auto;
+		border: 1px thick red;
+		box-shadow: 1px 1px #3A3A3A;
+	}
+	.puntaje{
+		color:#C8C0C1 ;
+		right:7px;
+		font-size: 25px;
+		height: 27px;
+		width: 30px;
+		padding-left: 3px;
+		margin: -17px 5px 5px 174px;
+	}
+	.barra_separacion{
+		width: 0px;
+		height: 49px;
+		border-right: 1px solid white;
+		position: absolute;
+		right: 55px;
+		top:0px;
+		box-shadow: 1px 1px black;
+		
+	}
+	td{
+		height:50px;
+		width: 50px;
+	}
+	.casillero_colores{
+		width:220px;
+		height:50px;
+		background-color: gray;
+		margin: 1px;
+		position: relative;
+	}
+	.casillero_colores h4{
+		padding-left: 50px;
+		padding-top: 10px;
+		color: white;
+		width: 100px;
+		margin: 0px;
+		position: relative;
+		top:5px;
+	}
+	#boton_jugar{
+		float: right;
+		position:relative;
+		top:230px;
+		left: -80px;
+		width:80px;
+		height: 30px;
+		font-size: 18px;
+	}
+	#boton_volver{
+		float: right;
+		position:relative;
+		top:455px;
+		left: 23px;
+		width:auto;
+		height: 30px;
+		font-size: 18px;
+	}
+	#mensajes{
+		width: 218px;
+		background-color: antiquewhite;
+		border: 1px solid red;
+		margin-top: 3px;
+	}
+	#inner_message{
+		align-content: center;
+		font-size: 15px;
+		color:brown;
+		font-family: roboto;
+		margin-top: 0px;
+	}
+
+</style>
+</head>
+
+<body>
+<div id="game_table">
+<div id="colores_personas">
+	<div class="casillero_colores">
+		<div class="jugador"></div>
+	  <h4>Human player</h4>
+  		<div class="barra_separacion"></div>
+	  <div class="puntaje" id="puntaje_humano"> </div>
+	</div>
+  <div class="casillero_colores">
+  		<div class="computadora"></div>
+  	<h4>AI opponent</h4>
+  		<div class="barra_separacion"></div>
+  	<div class="puntaje" id="puntaje_computadora"> </div>
+  	</div>
+  <div class="casillero_colores" id="mensajes">
+  		<div id="advertencias"></div>
+  </div>
+</div>
+<input type="button" value="Start" onClick="Jugar()" id="boton_jugar"/>
+<input type="button" value="Undo play" onClick="Volver()" id="boton_volver"/>
+
+<table id="table">
+	<thead id="table_header">
+		<tr>
+			<td>
+
+			</td>
+			<td>
+				1
+			</td>
+			<td>
+				2
+			</td>
+			<td>
+				3
+			</td>
+			<td>
+				4
+			</td>
+			<td>
+				5
+			</td>	
+			<td>
+				6
+			</td>
+			<td>
+				7
+			</td>
+			<td>
+				8
+			</td>
+		</tr>
+	</thead>
+	<tbody id="table_body">
+	</tbody>
+</table>
+</div>
+<script src="flip_tiles.js"></script>
+<script src="jquery-3.2.1.min.js"></script>
+<script src="jquery-ui-1.12.1/jquery-ui.js"></script>
+<script>
+var waiting =false
+var table = []
+var occupiedSpaces = []
+var table_abstract = []
+var symbolPlayer = []
+var table_backup = []
+var occupiedSpaces_backup = []
+var table_abstract_backup = []
+var table_body = document.getElementById("table_body")
+for(var i=0;i<8;i++){
+	var tr = document.createElement("tr")
+	table_body.appendChild(tr)
+	tr.insertCell(0).innerHTML=i+1
+	for (var j=0;j<8;j++){
+		table.push(tr.insertCell(-1))
+	}
+}
+var corners = [0,7,56,63]
+var region_celeste = [2,3,4,5,16,23,24,31,32,39,40,47,58,59,60,61]
+var region_azul = [10,11,12,13,17,22,25,30,33,38,41,46,50,51,52,53]
+var region_roja = [1,6,8,9,14,15,48,49,54,55,57,62]
+var region_verde = [18,19,20,21,26,27,28,29,34,35,36,37,42,43,44,45]
+var corners_ev = 20
+var region_celeste_ev = 8
+var region_verde_ev = 0
+var region_azul_ev = -8
+var region_roja_ev = -15
+var regiones = [corners,region_celeste,region_azul,region_roja,region_verde]
+var regiones_ev = [corners_ev,region_celeste_ev,region_azul_ev,region_roja_ev,region_verde_ev]
+function Volver(){
+	var table_backup = window.table_abstract_backup
+	var occupied_spaces_backup = window.occupiedSpaces_backup
+	var table = window.table
+	if(occupied_spaces_backup.length>=5){
+		for(var i=0;i<table_backup.length;i++){
+			if(table_backup[i]=="W"){
+				table[i].innerHTML="<div class='fichablanca'> </div>"
+			}
+			else if(table_backup[i]=="B"){
+				table[i].innerHTML="<div class='fichanegra'> </div>"
+			}
+			else{
+				table[i].innerHTML=""
+			}
+		}
+		window.occupiedSpaces = occupied_spaces_backup;
+		window.table_abstract = table_abstract_backup;
+		var symbolPlayer = window.symbolPlayer;
+		updateScore(symbolPlayer,table_abstract)
+	}
+}
+function updateColors(symbolPlayer){
+	if(symbolPlayer[0]=="W"){
+		document.getElementsByClassName("jugador")[0].setAttribute("id","fichablanca_small");
+		document.getElementsByClassName("computadora")[0].setAttribute("id","fichanegra_small");
+	}
+	else{
+		document.getElementsByClassName("jugador")[0].setAttribute("id","fichanegra_small");
+		document.getElementsByClassName("computadora")[0].setAttribute("id","fichablanca_small");
+	}
+}
+function incorrectMovement(player,symbolPlayer,position,table_abstract){
+	if(table_abstract[position] !=" "){
+		message = "That place is not empty"
+		updateWarningMessage(message,2000)
+		return true
+	}
+	else if(doesntFlipAnyTile(player,symbolPlayer,position,table_abstract)){
+		message="That movement doesn't flip any tiles.";
+		updateWarningMessage(message,2000);
+		return true
+	}
+	return false
+}
+function doesntFlipAnyTile(player,symbolPlayer,position,table_abstract){
+    if(player==symbolPlayer[0]){
+       var opponent = symbolPlayer[1]
+	   }
+    else if(player==symbolPlayer[1]){
+        var opponent = symbolPlayer[0]
+		}
+    var table_abstract_copy = table_abstract.slice()
+    var preMoveOccupiedSpaces = numberOfTiles(opponent,table_abstract_copy)
+	table_abstract_copy[position]=player
+    flipTiles(player,symbolPlayer,position,[],table_abstract_copy)
+    var afterMoveOccupiedSpaces = numberOfTiles(opponent,table_abstract_copy)
+    if(preMoveOccupiedSpaces != afterMoveOccupiedSpaces){
+        return false
+	}
+    return true
+}
+function numberOfTiles(player,table){
+    var s= 0
+    for(var i=0; i<64;i++){
+		if(table[i]==player){
+			s +=1
+		}
+	}
+	return s
+}
+function noValidMoves(player,symbolPlayer,table_abstract,occupiedSpaces){
+   var adjacent_Spaces = adjacentSpaces(table_abstract,occupiedSpaces)
+    for(var l=0; l<adjacent_Spaces.length;l++){
+		if(!doesntFlipAnyTile(player,symbolPlayer,adjacent_Spaces[l],table_abstract)){
+			return false
+		}
+	}
+    return true
+}
+function adjacentSpaces(table_abstract,occupiedSpaces){
+    var adjacent_Spaces = []
+    for(var l =0; l<occupiedSpaces.length;l++){
+		if(occupiedSpaces[l]%8==0){
+			X =  [-8,-7,1,8,9]
+			for(var i=0;i <X.length;i++){
+				if ((0<=occupiedSpaces[l]+X[i]<= 63) && (adjacent_Spaces.indexOf(occupiedSpaces[l]+X[i]) ==-1) && (table_abstract[occupiedSpaces[l]+X[i]]=="" || table_abstract[occupiedSpaces[l]+X[i]]==" ")){
+            		adjacent_Spaces.push(occupiedSpaces[l]+X[i])
+				}
+			}
+		}
+		else if((occupiedSpaces[l]+1)%8==0){
+			X =  [-9,-8,-1,8,7]
+			for(var i=0;i <X.length;i++){
+				if ((0<=occupiedSpaces[l]+X[i]<= 63) && (adjacent_Spaces.indexOf(occupiedSpaces[l]+X[i]) ==-1) && (table_abstract[occupiedSpaces[l]+X[i]]=="" || table_abstract[occupiedSpaces[l]+X[i]]==" ")){
+            		adjacent_Spaces.push(occupiedSpaces[l]+X[i])
+				}
+			}
+		}
+		else{
+			X =  [-7,-8,-9,-1,1,9,8,7]
+			for(var i=0;i <X.length;i++){
+				if ((0<=occupiedSpaces[l]+X[i]<= 63) && (adjacent_Spaces.indexOf(occupiedSpaces[l]+X[i]) ==-1) && (table_abstract[occupiedSpaces[l]+X[i]]=="" || table_abstract[occupiedSpaces[l]+X[i]]==" ")){
+            		adjacent_Spaces.push(occupiedSpaces[l]+X[i])
+				}
+			}
+
+		}
+		}
+    return adjacent_Spaces
+}
+function remove(array,element){
+	var index= array.indexOf(element);
+	if(index!=-1){
+		array.splice(index,1);
+	}
+}
+function shuffle(array){
+  var currentIndex = array.length, temporaryValue, randomIndex;
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
+}
+function winningPositions(player,symbolPlayer,newBoard,occupiedSpaces){
+	if(noValidMoves(symbolPlayer[0],symbolPlayer,newBoard,occupiedSpaces) && noValidMoves(symbolPlayer[1],symbolPlayer,newBoard,occupiedSpaces)){
+        var number_ai = numberOfTiles(symbolPlayer[1],newBoard)
+        var number_human = numberOfTiles(symbolPlayer[0],newBoard)
+        if(player == symbolPlayer[0] && (number_human > number_ai)){
+            return true
+		}
+        else if(player == symbolPlayer[1] && (number_ai > number_human)){
+            return true
+		}
+    return false
+	}
+}
+function availableSpots(newBoard,player,symbolPlayer,occupiedSpaces){
+    var adjacent_Spots = adjacentSpaces(newBoard,occupiedSpaces)
+    var to_remove = []
+    for( var l=0;l<adjacent_Spots.length;l++){
+        if (doesntFlipAnyTile(player,symbolPlayer,adjacent_Spots[l],newBoard)){
+            to_remove.push(adjacent_Spots[l])
+		}
+	}
+    for(var x=0; x<to_remove.length;x++){
+		remove(adjacent_Spots,to_remove[x])
+	}
+    return adjacent_Spots
+}
+function draw(symbolPlayer,newBoard,occupiedSpaces){
+    if(noValidMoves(symbolPlayer[0],symbolPlayer,newBoard,occupiedSpaces) && noValidMoves(symbolPlayer[1],symbolPlayer,newBoard,occupiedSpaces)){
+        var number_ai = numberOfTiles(symbolPlayer[1],newBoard)
+        var number_human = numberOfTiles(symbolPlayer[0],newBoard)
+        if(number_ai == number_human){
+            return true
+		}
+    return false
+	}
+}
+function evaluatingFunction(player,symbolPlayer,table,occupiedSpaces){
+    var human = numberOfTiles(symbolPlayer[0],table)
+    var ai = numberOfTiles(symbolPlayer[1],table)
+    var eval_mobility = evalMobility(player,symbolPlayer,table,occupiedSpaces)
+    var tile_difference = ai - human
+    return tile_difference + eval_mobility/4
+}
+function evalPosition(move,regiones,regiones_ev){
+    var position = move.index
+    if(regiones[4].indexOf(position)>-1){
+        return regiones_ev[4]
+	}
+    else if(regiones[2].indexOf(position)>-1){
+        return regiones_ev[2]
+	}
+    else if(regiones[1].indexOf(position)>-1){
+        return regiones_ev[1]
+	}
+    else if(regiones[3].indexOf(position)>-1){
+        return regiones_ev[3]
+	}
+    else if(regiones[0].indexOf(position)>-1){
+        return regiones_ev[0]
+	}
+}
+function evalMobility(player,symbolPlayer,table,occupiedSpaces){
+    var count_available_moves_human = 0
+    var count_available_moves_ai = 0
+    var adjacent_spaces = adjacentSpaces(table,occupiedSpaces)
+    for(var i=0;i<adjacent_spaces.length;i++){
+        if (!doesntFlipAnyTile(symbolPlayer[0],symbolPlayer,adjacent_spaces[i],table)){
+            count_available_moves_human +=1
+		}
+        if(!doesntFlipAnyTile(symbolPlayer[1],symbolPlayer,adjacent_spaces[i],table)){
+            count_available_moves_ai +=1
+		}
+    return (count_available_moves_ai - count_available_moves_human)
+	}
+}
+function minimaxver2(table,player,symbolPlayer,occupiedSpaces,depth,regiones,regiones_ev,alpha,beta){
+	depth +=1
+	var availSpots = availableSpots(table,player,symbolPlayer,occupiedSpaces)
+	shuffle(availSpots)
+	if(winningPositions(symbolPlayer[1],symbolPlayer,table,occupiedSpaces)){
+		var x= new Object()
+		x.score = depth-100
+		return x
+	}
+	else if(winningPositions(symbolPlayer[0],symbolPlayer,table,occupiedSpaces)){
+		var x= new Object()
+		x.score = +100-depth
+		return x
+	}
+	else if(draw(symbolPlayer,table,occupiedSpaces)){
+		var x= new Object()
+		x.score = 0
+		return x
+	}
+	else if(depth ==5 ||  availSpots.length==0){
+		var x= new Object()
+		var ev = evaluatingFunction(player,symbolPlayer,table,occupiedSpaces)
+		x.score = ev
+		return x
+	}
+	var bestMove = new Object()
+	if(player == symbolPlayer[0]){		
+		bestMove.score = +999
+		for(var k=0; k<availSpots.length;k++){
+			var move =new Object()
+			move.index = availSpots[k]
+			var newBoard = table.slice()
+			newBoard[availSpots[k]] = player
+			occupiedSpaces.push(availSpots[k])
+			newBoard[availSpots[k]] = player
+    		flipTiles(player,symbolPlayer,availSpots[k],[],newBoard)
+			result = minimaxver2(newBoard,symbolPlayer[1],symbolPlayer,occupiedSpaces,depth,regiones,regiones_ev,alpha,beta)
+			move.score = result.score
+			move.score += evalPosition(move,regiones,regiones_ev)
+			remove(occupiedSpaces,availSpots[k])
+			if(move.score <= bestMove.score){
+				bestMove.score = move.score
+				bestMove.index = move.index
+			}
+			beta = Math.min(beta, bestMove.score)
+			if(bestMove.score <= alpha){
+				break
+			}
+		}
+		return bestMove
+	}
+	else if(player == symbolPlayer[1]){
+		bestMove.score = -999
+		for(var k=0; k<availSpots.length;k++){
+			var move = new Object()
+			move.index = availSpots[k]
+			var newBoard = table.slice()
+			newBoard[availSpots[k]] = player
+			occupiedSpaces.push(availSpots[k])
+			newBoard[availSpots[k]] = player
+			flipTiles(player,symbolPlayer,availSpots[k],[],newBoard)
+			result = minimaxver2(newBoard,symbolPlayer[0],symbolPlayer,occupiedSpaces,depth,regiones,regiones_ev,alpha,beta)
+			move.score = result.score
+			move.score += evalPosition(move,regiones,regiones_ev)
+			remove(occupiedSpaces,availSpots[k])
+			if(move.score >= bestMove.score){
+				bestMove.score = move.score
+				bestMove.index = move.index
+				}
+			alpha = Math.max(alpha,bestMove.score)
+			if(beta <= bestMove.score){
+				break
+			}
+		}
+		return bestMove
+	}
+}
+function finalCount(symbolPlayer,table){
+    var human_count = numberOfTiles(symbolPlayer[0],table)
+    var computer_count = numberOfTiles(symbolPlayer[1],table)
+    if(human_count == computer_count){
+		message="Empate!"
+	}
+    else if(human_count<computer_count){
+        message = "Perdiste!"
+	}
+    else{
+		message = "Ganaste!"
+	}
+	updateWarningMessage(message,30000);
+}
+function iluminar_casillero(position,table,color,time){
+	if(position%2==0){
+		$(table[position]).css('backgroundColor', color);
+		$(table[position]).animate({'opacity': '1.0'}, time, function () {
+			$(table[position]).css({'backgroundColor': 'grey','opacity': '1'});});
+	}
+	else{
+		$(table[position]).css('backgroundColor', color);
+		$(table[position]).animate({'opacity': '1.0'}, time, function () {
+			$(table[position]).css({'backgroundColor': 'darkgrey','opacity': '1'});});
+	}
+}
+function updateScore(symbolPlayer,table_abstract){
+	score_human_player = numberOfTiles(symbolPlayer[0],table_abstract);
+	score_computer_player = numberOfTiles(symbolPlayer[1],table_abstract);
+	document.getElementById("puntaje_humano").innerHTML=score_human_player;
+	document.getElementById("puntaje_computadora").innerHTML=score_computer_player;
+}
+function updateWarningMessage(message,miliseconds){
+	inner_message = document.createElement("p")
+	inner_message.innerHTML=message
+	inner_message.id="inner_message"
+	document.getElementById("advertencias").innerHTML=""	
+	document.getElementById("advertencias").appendChild(inner_message)
+	$("#inner_message").delay(miliseconds).fadeOut();
+}
+function humanMoves(ev){
+	var table = window.table;
+	var table_abstract = window.table_abstract;
+	var occupiedSpaces = window.occupiedSpaces;
+	var position = table.indexOf(ev.target);
+	var symbolPlayer = window.symbolPlayer;
+	var player = symbolPlayer[0];
+	window.table_abstract_backup = table_abstract.slice()
+	window.occupiedSpaces_backup = occupiedSpaces.slice()
+	if(!waiting){
+		if(incorrectMovement(player,symbolPlayer,position,table_abstract)){
+			return false
+		}
+		table_abstract[position] = player;
+		flipHTML(player,position,table);
+		occupiedSpaces.push(position);
+		flipTiles(player,symbolPlayer,position,table,table_abstract);
+		updateScore(symbolPlayer,table_abstract);
+		if(noValidMoves(symbolPlayer[0],symbolPlayer,table_abstract,occupiedSpaces) && noValidMoves(symbolPlayer[1],symbolPlayer,table_abstract,occupiedSpaces)){
+			finalCount(symbolPlayer,table_abstract);
+			window.waiting = true;
+		}
+		if(noValidMoves(symbolPlayer[1],symbolPlayer,table_abstract,occupiedSpaces)){
+			message="Computer doesn't have any valid moves, play again"
+			updateWarningMessage(message,2000);
+			return false
+		}
+		else{
+			setTimeout(computerMoves,2000)
+			message="Thinking..."
+			updateWarningMessage(message,2000)
+			window.waiting = true
+		}
+	}
+}
+function computerMoves(){
+	var table = window.table;
+	var table_abstract = window.table_abstract;
+	var occupiedSpaces = window.occupiedSpaces;
+	var adjacent_Spaces = adjacentSpaces(table_abstract,occupiedSpaces);
+	var symbolPlayer = window.symbolPlayer;
+	var player = symbolPlayer[1]
+	var regiones = window.regiones
+	var regiones_ev = window.regiones_ev
+	var bestMove = minimaxver2(table_abstract,player,symbolPlayer,occupiedSpaces,0,regiones,regiones_ev,-999,+999).index
+    table_abstract[bestMove] = symbolPlayer[1]
+	flipHTML(player,bestMove,table);
+	iluminar_casillero(bestMove,table,'#FF0000',2000)
+    occupiedSpaces.push(bestMove)
+	flipTiles(player,symbolPlayer,bestMove,table,table_abstract);
+	updateScore(symbolPlayer,table_abstract);
+	if(noValidMoves(symbolPlayer[0],symbolPlayer,table_abstract,occupiedSpaces) && noValidMoves(symbolPlayer[1],symbolPlayer,table_abstract,occupiedSpaces)){
+		finalCount(symbolPlayer,table_abstract);
+		window.waiting = true;
+		return false;
+		}
+	else if(noValidMoves(symbolPlayer[0],symbolPlayer,table_abstract,occupiedSpaces)){
+		message="You don't have any valid moves, so the computer will play again";
+		updateWarningMessage(message,2500);
+		setTimeout(computerMoves,2500);
+		return false
+		}
+	window.waiting = false
+}
+function initTable(){
+	var table = window.table
+	window.table_abstract=[]
+	window.table_abstract_backup=[]
+	var table_abstract = window.table_abstract
+	var table_abstract_backup = window.table_abstract_backup
+	window.occupiedSpaces=[]
+	window.occupiedSpaces_backup=[]
+	var occupiedSpaces = window.occupiedSpaces
+	var occupiedSpaces_backup = window.occupiedSpaces_backup
+    for (var i=0;i<64;i++){
+		table[i].innerHTML=""
+		table_abstract.push(" ")
+		table_abstract_backup.push(" ")
+	}
+    table[36].innerHTML="<div class='fichanegra'> </div>"
+    table[28].innerHTML="<div class='fichablanca'> </div>"
+    table[35].innerHTML="<div class='fichablanca'> </div>"
+    table[27].innerHTML="<div class='fichanegra'> </div>"
+	table_abstract[36]="B"
+	table_abstract_backup[36] = "B"
+	table_abstract[28]="W"
+	table_abstract_backup[28]="W"
+	table_abstract[35]="W"
+	table_abstract_backup[35] = "W"
+	table_abstract[27]="B"
+	table_abstract_backup[27]="B"
+    occupiedSpaces.push(27)
+    occupiedSpaces.push(36)
+    occupiedSpaces.push(28)
+    occupiedSpaces.push(35)
+    occupiedSpaces_backup.push(27)
+    occupiedSpaces_backup.push(36)
+    occupiedSpaces_backup.push(28)
+    occupiedSpaces_backup.push(35)
+	for(var i=0;i<64;i++){
+		table[i].ondblclick=humanMoves
+	}
+}
+function Jugar(){
+    initTable()
+    if ( Math.floor(Math.random(0,1)*2)==0){
+        window.symbolPlayer = ["B","W"]
+		updateWarningMessage("You start the game.",3000)
+		window.waiting=false
+		updateScore(symbolPlayer,table_abstract)
+		updateColors(symbolPlayer)
+	}
+    else{
+        window.symbolPlayer = ["W","B"]
+		updateWarningMessage("The computer starts.",3000)
+		updateScore(symbolPlayer,table_abstract)
+		updateColors(symbolPlayer)
+        computerMoves()
+	}
+}
+
+</script>
+</body>
+</html>
